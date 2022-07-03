@@ -1,0 +1,10 @@
+name: Run test
+
+on: [push]
+
+jobs:
+  test-01-brainless-http-server:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v3
+    - run: ./01.brainless-http-server/test.sh
