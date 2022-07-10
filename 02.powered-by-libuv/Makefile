@@ -16,7 +16,7 @@ $(LIBUV_LIB_FILE): $(LIBUV_ROOT)
 	cd $(LIBUV_ROOT) && mkdir -p build && cd ./build && cmake .. && cd .. && cmake --build build
 
 $(PROGRAM): $(SRC_FILES) $(LIBUV_LIB_FILE)
-	gcc $(INCLUDE:%=-I%) -Wall -g3 -o $(PROGRAM) $(SRC_FILES) $(LIBUV_LIB_FILE)
+	gcc -pthread -lpthread $(INCLUDE:%=-I%) -Wall -g3 -o $(PROGRAM) $(SRC_FILES) $(LIBUV_LIB_FILE)
 
 # Tasks
 
