@@ -4,7 +4,10 @@ on: [push]
 
 jobs:
   test-01-brainless-http-server:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     steps:
     - uses: actions/checkout@v3
+      with:
+        submodules: recursive
     - run: ./01.brainless-http-server/test.sh
+    - run: ./02.powered-by-libuv/test.sh
