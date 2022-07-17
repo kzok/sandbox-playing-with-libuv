@@ -6,7 +6,7 @@
 #include <string.h>
 #include <unistd.h>
 
-#define LOG(...) do{printf(__VA_ARGS__);printf("\n");} while(0);
+#define log(...) do{printf(__VA_ARGS__);printf("\n");} while(0);
 
 #define EXPOSED_PORT 3000
 
@@ -26,21 +26,21 @@ void handle_connection(int client) {
   int ret = 0;
 
   char trash_bin_buffer[1024] = {0};
-  // 受信データを読む（curl 対策）
+  // read received data (work for curl)
   ret = read(client, trash_bin_buffer, sizeof(trash_bin_buffer));
   if (ret == -1) {
-    LOG("Failed to read(). %s", strerror(errno));
+    log("Failed to read(). %s", strerror(errno));
     return;
   }
-  // 3 秒間待ってやる
+  // wait 3 seconds
   for (int count = 3; count > 0; count--) {
-    LOG("Sleep count %d", count);
+    log("Sleep count %d", count);
     sleep(1);
   }
-  // レスポンスを送る
+  // write HTTP response
   ret = write(client, response, strlen(response));
   if (ret == -1) {
-    LOG("Failed to send(). %s", strerror(errno));
+    log("Failed to send(). %s", strerror(errno));
     return;
   }
 }
@@ -51,11 +51,11 @@ int main() {
   // socket()
   int server = socket(AF_INET, SOCK_STREAM, 0);
   if (server == -1) {
-    LOG("Failed to socket(). %s", strerror(errno));
+    log("Failed to socket(). %s", strerror(errno));
     return -1;
   }
 
-  // bind: Address already in use 回避のためのバッドノウハウ
+  // Avoiding "bind: Address already in use"
   const int one = 1;
   setsockopt(server, SOL_SOCKET, SO_REUSEADDR, &one, sizeof(int));
 
@@ -66,18 +66,18 @@ int main() {
   server_addr.sin_addr.s_addr = INADDR_ANY;
   ret = bind(server, (struct sockaddr *)&server_addr, sizeof(server_addr));
   if (ret == -1) {
-    LOG("Failed to bind(). %s", strerror(errno));
+    log("Failed to bind(). %s", strerror(errno));
     return -1;
   }
 
   // listen()
   ret = listen(server, 5);
   if (ret == -1) {
-    LOG("Failed to listen(). %s", strerror(errno));
+    log("Failed to listen(). %s", strerror(errno));
     return -1;
   }
 
-  LOG("Server listening on http://localhost:%d ...", EXPOSED_PORT);
+  log("Server listening on http://localhost:%d ...", EXPOSED_PORT);
 
   while(1) {
     struct sockaddr_in client_addr;
@@ -85,24 +85,24 @@ int main() {
     // accept()
     int client = accept(server, (struct sockaddr *)&client_addr, (socklen_t *)&client_addr_len);
     if (client == -1) {
-      LOG("Failed to accept(). %s", strerror(errno));
+      log("Failed to accept(). %s", strerror(errno));
       continue;
     }
-    // 1 秒間のタイムアウトを設定しておく（ブラウザのコネクション待機対策）
+    // Set 1 second timeout (Browsers sometimes hold TCP connection)
     struct timeval tv;
     tv.tv_sec = 1;
     tv.tv_usec = 0;
     setsockopt(client, SOL_SOCKET, SO_RCVTIMEO, (const char*)&tv, sizeof tv);
 
-    LOG("Connection accepted.");
+    log("Connection accepted.");
     handle_connection(client);
     if (client != -1) {
       close(client);
     }
-    LOG("Connection closed.");
+    log("Connection closed.");
   }
 
-  // cleanup (dead code)
+  // cleanup (but dead code)
   if (server != -1) {
     close(server);
   }
