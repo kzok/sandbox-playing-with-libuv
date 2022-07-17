@@ -26,18 +26,18 @@ void handle_connection(int client) {
   int ret = 0;
 
   char trash_bin_buffer[1024] = {0};
-  // 受信データを読む（curl 対策）
+  // read received data (work for curl)
   ret = read(client, trash_bin_buffer, sizeof(trash_bin_buffer));
   if (ret == -1) {
     LOG("Failed to read(). %s", strerror(errno));
     return;
   }
-  // 3 秒間待ってやる
+  // wait 3 seconds
   for (int count = 3; count > 0; count--) {
     LOG("Sleep count %d", count);
     sleep(1);
   }
-  // レスポンスを送る
+  // write HTTP response
   ret = write(client, response, strlen(response));
   if (ret == -1) {
     LOG("Failed to send(). %s", strerror(errno));
@@ -55,7 +55,7 @@ int main() {
     return -1;
   }
 
-  // bind: Address already in use 回避のためのバッドノウハウ
+  // Avoiding "bind: Address already in use"
   const int one = 1;
   setsockopt(server, SOL_SOCKET, SO_REUSEADDR, &one, sizeof(int));
 
@@ -88,7 +88,7 @@ int main() {
       LOG("Failed to accept(). %s", strerror(errno));
       continue;
     }
-    // 1 秒間のタイムアウトを設定しておく（ブラウザのコネクション待機対策）
+    // Set 1 second timeout (Browsers sometimes hold TCP connection)
     struct timeval tv;
     tv.tv_sec = 1;
     tv.tv_usec = 0;
@@ -102,7 +102,7 @@ int main() {
     LOG("Connection closed.");
   }
 
-  // cleanup (dead code)
+  // cleanup (but dead code)
   if (server != -1) {
     close(server);
   }
